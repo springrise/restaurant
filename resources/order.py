@@ -22,8 +22,8 @@ class Order(Resource):
 
         foods = [FoodModel.find_by_id(food).json() for food in data['food_id']]
         total_price = sum([food['price'] for food in foods])
-
-        order = OrderModel(user_id, total_price)
+        status = 'submitted.'
+        order = OrderModel(user_id, total_price, status)
 
         try:
             order.save_to_db()
@@ -36,12 +36,8 @@ class Order(Resource):
 class OrderTrack(Resource):
     @jwt_required
     def get(self, _id):
-        # claims = get_jwt_claims()
-        # if not claims['is_admin']:
-        #     return {'message': 'Admin privilege required.'}, 401
         user_id = get_jwt_identity()
-        order = OrderModel.find_by_id(_id)
-
+        order = OrderModel.find_by_user_order_id(_id, user_id)
         if order:
             return order.json()
         return {'message': 'Order not found!'}
@@ -54,18 +50,18 @@ class OrderTrack(Resource):
 
         parser = reqparse.RequestParser()
         parser.add_argument('food_id',
-                            type=int,
+                            type=list,
                             required=True,
-                            help="This field cannot be left blank!"
+                            location='json',
+                            help="every order need a list of food id!"
                             )
         data = Order.parser.parse_args()
-
         order = OrderModel.find_by_id(_id)
 
         if order:
-            order.food_id = data['food_id']
-            food = FoodModel.find_by_id(data['food_id'])
-            order.price = food.price
+            foods = [FoodModel.find_by_id(food).json() for food in data['food_id']]
+            total_price = sum([food['price'] for food in foods])
+            order.total_price = total_price
         else:
             return {'message': 'Order not found'}
 
@@ -93,16 +89,19 @@ class OrderList(Resource):
 
     @jwt_required
     def get(self):
-        # claims = get_jwt_claims()
-        # if not claims['is_admin']:
-        #     return{'message': 'admin privilege required.'}, 401
+        claims = get_jwt_claims()
+        if not claims['is_admin']:
+            return{'message': 'admin privilege required.'}, 401
 
         orders = [order.json() for order in OrderModel.find_all()]
         return {'orders': orders},200
 
 
 class UserOrders(Resource):
-    def get(self, user_id):
-        orders = OrderModel.find_by_user_id(user_id)
-        userorderList = [order.json() for order in orders]
-        return {'userorder': userorderList}
+    @jwt_required
+    def get(self,_id):
+        user_id = get_jwt_identity()
+        order = OrderModel.find_by_user_order_id(_id, user_id)
+        if order:
+            return order.json()
+        return {'userorder': 'order not found'}

@@ -111,7 +111,7 @@ api.add_resource(Order, "/order")
 api.add_resource(OrderTrack, "/order/<int:_id>")
 api.add_resource(OrderList, "/orders")
 api.add_resource(FoodCategoryList, "/categories")
-api.add_resource(UserOrders, "/userorders/<int:user_id>")
+api.add_resource(UserOrders, "/userorder/<int:_id>")
 
 if __name__ == "__main__":
     db.init_app(app)
