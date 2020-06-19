@@ -16,6 +16,11 @@ class Food(Resource):
                         required=True,
                         help="This field cannot be left blank!"
                         )
+    parser.add_argument('category',
+                        type=str,
+                        required=True,
+                        help="This field cannot be left blank!"
+                        )
 
     @jwt_required #fresh or non-fresh
     def get(self, name):
@@ -38,7 +43,7 @@ class Food(Resource):
             return {'message': "A food with name '{}' already exists.".format(name)}, 400
 
         data = Food.parser.parse_args()
-
+        print(data)
         food = FoodModel(name, **data)
 
         try:
@@ -84,3 +89,29 @@ class FoodList(Resource):
     def get(self):
         foods = [food.json() for food in FoodModel.find_all()]
         return {'food': foods}, 200
+
+
+class FoodCategory(Resource):
+
+    def post(self, category):
+        pass
+
+    def get(self, category):
+        pass
+
+    def put(self, category):
+        pass
+
+    def delete(self, category):
+        pass
+
+
+class FoodCategoryList(Resource):
+    def get(self):
+        foods = [food.json() for food in FoodModel.find_all()]
+        results = {}
+        for food in foods:
+            if food['category'] not in results:
+                results[food['category']] = []
+            results[food['category']].append(food)
+        return {'categories': results}

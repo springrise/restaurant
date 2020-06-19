@@ -7,20 +7,21 @@ class FoodModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
     price = db.Column(db.Float(precision=2))
+    category = db.Column(db.String(80))
 
-    orders = db.relationship('OrderModel', lazy='dynamic')
+    items = db.relationship('OrderItemModel', lazy='dynamic')
 
-    def __init__(self, name, price):
+    def __init__(self, name, price, category):
         self.name = name
         self.price = price
-        # self.user_id = user_id
+        self.category = category
 
     def json(self):
         return {
             'id': self.id,
             'name': self.name,
             'price': self.price,
-            # 'store_id': self.user_id
+            'category': self.category
         }
 
     @classmethod

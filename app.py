@@ -5,10 +5,9 @@ from flask_jwt_extended import JWTManager
 from db import db
 from blacklist import BLACKLIST
 from models.user import UserModel
-from resources.order import Order, OrderTrack, OrderList
+from resources.order import Order, OrderTrack, OrderList, UserOrders
 from resources.user import UserRegister, UserLogin, User, TokenRefresh, UserLogout
-from resources.food import Food, FoodList
-
+from resources.food import Food, FoodList, FoodCategoryList
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
@@ -111,6 +110,8 @@ api.add_resource(UserLogout, "/logout")
 api.add_resource(Order, "/order")
 api.add_resource(OrderTrack, "/order/<int:_id>")
 api.add_resource(OrderList, "/orders")
+api.add_resource(FoodCategoryList, "/categories")
+api.add_resource(UserOrders, "/userorders/<int:user_id>")
 
 if __name__ == "__main__":
     db.init_app(app)

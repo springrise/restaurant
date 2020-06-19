@@ -1,33 +1,37 @@
 from db import db
 
+
 class OrderModel(db.Model):
     __tablename__ = 'orders'
 
     id = db.Column(db.Integer, primary_key=True)
-    price = db.Column(db.Float(precision=2))
+    total_price = db.Column(db.Float(precision=2))
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    food_id = db.Column(db.Integer, db.ForeignKey('foods.id'))
 
     user = db.relationship('UserModel')
-    food = db.relationship('FoodModel')
 
-    def __init__(self, user_id, food_id, price):
-        self.price = price
+
+    items = db.relationship('OrderItemModel', lazy='dynamic')
+
+    def __init__(self, user_id, total_price):
+        self.total_price = total_price
         self.user_id = user_id
-        self.food_id = food_id
 
     def json(self):
         return {
             'order_id': self.id,
-            'price': self.price,
+            'total_price': self.total_price,
             'user_id': self.user_id,
-            'food_id': self.food_id
         }
 
     @classmethod
     def find_by_id(cls, _id):
         return cls.query.filter_by(id=_id).first()
+
+    @classmethod
+    def find_by_user_id(cls, user_id):
+        return cls.query.filter_by(user_id=user_id)
 
     @classmethod
     def find_all(cls):
