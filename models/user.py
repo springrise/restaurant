@@ -1,3 +1,5 @@
+import datetime
+
 from db import db
 
 
@@ -7,21 +9,21 @@ class UserModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80))
     password = db.Column(db.String(80))
-    role = db.Column(db.String(80))
+    role = db.Column(db.String(80), default='user')
+    registered_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     orders = db.relationship('OrderModel', lazy='dynamic') # do not create an object for each order in to the order table
 
-    def __init__(self, username, password, role='user'):
+    def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.role = role
 
     def json(self):
         return {
             'id': self.id,
             'username': self.username,
-            'role': self.role
-            # 'foods': [food.json() for food in self.items.all()] #
+            'role': self.role,
+            'registered_at': self.registered_at.isoformat()
         }
 
     def save_to_db(self):

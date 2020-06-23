@@ -1,9 +1,9 @@
 from flask_restful import reqparse, Resource
 from flask_jwt_extended import jwt_required, get_jwt_claims, get_jwt_identity
+from datetime import datetime
 
 from models.food import FoodModel
 from models.order import OrderModel
-from models.order_item import OrderItemModel
 
 
 class Order(Resource):
@@ -18,12 +18,13 @@ class Order(Resource):
     @jwt_required
     def post(self):
         user_id = get_jwt_identity()
-        data = Order.parser.parse_args() #{'food_id': [1,2]}
+        data = Order.parser.parse_args()
 
         foods = [FoodModel.find_by_id(food).json() for food in data['food_id']]
         total_price = sum([food['price'] for food in foods])
         status = 'submitted.'
-        order = OrderModel(user_id, total_price, status)
+        created_at = datetime.now()
+        order = OrderModel(user_id, total_price, status, created_at, created_at)
 
         try:
             order.save_to_db()
@@ -40,7 +41,7 @@ class OrderTrack(Resource):
         order = OrderModel.find_by_user_order_id(_id, user_id)
         if order:
             return order.json()
-        return {'message': 'Order not found!'}
+        return {'message': 'Order not found!'}, 404
 
     @jwt_required
     def put(self, _id):
@@ -56,14 +57,16 @@ class OrderTrack(Resource):
                             help="every order need a list of food id!"
                             )
         data = Order.parser.parse_args()
+
         order = OrderModel.find_by_id(_id)
 
         if order:
             foods = [FoodModel.find_by_id(food).json() for food in data['food_id']]
             total_price = sum([food['price'] for food in foods])
             order.total_price = total_price
+            order.updated_at = datetime.now()
         else:
-            return {'message': 'Order not found'}
+            return {'message': 'Order not found'}, 404
 
         try:
             order.save_to_db()
@@ -103,5 +106,5 @@ class UserOrders(Resource):
         user_id = get_jwt_identity()
         order = OrderModel.find_by_user_order_id(_id, user_id)
         if order:
-            return order.json()
-        return {'userorder': 'order not found'}
+            return order.json(), 200
+        return {'userorder': 'order not found'}, 404

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Flask, jsonify
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
@@ -26,7 +28,10 @@ api = Api(app)
 @app.before_first_request
 def create_tables():
     db.create_all()
-    UserModel('bahareh', '12345', 'admin').save_to_db()
+    if not UserModel.find_by_role('admin'):
+        user = UserModel('bahareh', '12345')
+        user.role = 'admin'
+        user.save_to_db()
 
 
 jwt = JWTManager(app)
@@ -56,9 +61,7 @@ def expired_token_callback():
 
 
 @jwt.invalid_token_loader
-def invalid_token_callback(
-    error
-):  # we have to keep the argument here, since it's passed in by the caller internally
+def invalid_token_callback(error):  # we have to keep the argument here, since it's passed in by the caller internally
     return (
         jsonify(
             {"message": "Signature verification failed.", "error": "invalid_token"}

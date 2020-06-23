@@ -8,6 +8,7 @@ from flask_jwt_extended import (
     jwt_required,
     get_raw_jwt
 )
+from datetime import datetime
 
 from models.user import UserModel
 from blacklist import BLACKLIST
@@ -33,8 +34,8 @@ class UserRegister(Resource):
         print(data)
         if UserModel.find_by_username(data['username']):
             return {"message": "A user with that username already exists"}, 400
-
         user = UserModel(data['username'], data['password'])
+
         user.save_to_db()
 
         return {"message": "User created successfully."}, 201

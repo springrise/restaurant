@@ -1,4 +1,7 @@
+import datetime
+
 from db import db
+from models.order_item import OrderItemModel
 
 
 class OrderModel(db.Model):
@@ -7,25 +10,30 @@ class OrderModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     total_price = db.Column(db.Float(precision=2))
     status = db.Column(db.String(80))
+    created_at = db.Column(db.DateTime)
+    updated_at = db.Column(db.DateTime)
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     user = db.relationship('UserModel')
 
-
     items = db.relationship('OrderItemModel', lazy='dynamic')
 
-    def __init__(self, user_id, total_price, status):
+    def __init__(self, user_id, total_price, status, created_at, updated_at):
         self.total_price = total_price
         self.user_id = user_id
         self.status = status
+        self.created_at = created_at
+        self.updated_at = updated_at
 
     def json(self):
         return {
             'order_id': self.id,
             'total_price': self.total_price,
             'user_id': self.user_id,
-            'status': self.status
+            'status': self.status,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
         }
 
     @classmethod
